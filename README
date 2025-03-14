@@ -14,7 +14,7 @@ Bugs and requests...: https://github.com/desrod/pilot-link/issues
 Code contributions..: https://github.com/desrod/pilot-link/pulls?q=is:pr
 
 If you are unwilling to use GitHub, you may instead contact me, David A.
-Desrosiers, project maintainer, via email at <desrod@gnu-designs.com>.
+Desrosiers, project maintainer, via email at <david.a.desrosiers@gmail.com>.
 
 We used to be reachable on Internet Relay Chat, "irc", at irc.pilot-link.org
 in the channel #pilot-link. I used the name "setuid" there, and there were a
@@ -285,6 +285,38 @@ Building pilot-link on Cygwin under Windows
 	COM1 through the Cygwin virtual serial port bridging.
 
 
+Basic use of pilot-link conduits
+--------------------------------
+
+	On modern systems you probably use a USB connection to your Palm device.
+	For this it is recommended to use the standard Linux kernel modules 
+	"usbserial" and "visor", which usually must be loaded first. On Debian
+	systems i.e. this looks as follows:
+
+		$ sudo modprobe -a usbserial visor
+
+	Then you can use all pilot-link commands, always with specifying a port.
+	Note that you must press the HotSync button on your device, before
+	invoking the command within few seconds at maximum.
+	On Debian systems i.e. type:
+	
+		$ <pilot-link-command> -p /dev/ttyUSB1 [options..] [arguments..]
+
+	Some rare devices may prefer `ttyUSB0`.
+	For special cases and details see the chapter below.
+
+
+USB Notes
+---------
+
+	Please see doc/README.usb for more detailed information on
+	configuring your system to use USB-enabled Palm handheld devices
+	using the standard Linux "visor" kernel module.
+
+	If you would like to try the new libusb code, please see
+	doc/README.libusb for details on how to get that working properly.
+
+
 Some usage notes about pilot-link
 ---------------------------------
 
@@ -327,26 +359,6 @@ Some usage notes about pilot-link
 	'make validate', but it may not be of use to anyone but Scott.
 
 
-Debugging notes
----------------
-
-	Please see doc/README.debugging for more detailed information
-	describing how to debug pilot-link's core protocols and interfaces.
-	Debugging pilot-link will allow us to make pilot-link work better on
-	new devices and with new applications.
-
-
-USB Notes
----------
-
-	Please see doc/README.usb for more detailed information on
-	configuring your system to use USB-enabled Palm handheld devices
-	using the standard Linux "visor" kernel module.
-
-	If you would like to try the new libusb code, please see
-	doc/README.libusb for details on how to get that working properly.
-
-
 FreeBSD Notes
 -------------
 
@@ -380,6 +392,15 @@ Embedding information
 	For all normal operations, simply include the obvious files (pi-file
 	for pdb and .prc file access, pi-dlp for DLP sync functions, etc.).
 	pi-macros contains the portable byte-access routines.
+
+
+Debugging notes
+---------------
+
+	Please see doc/README.debugging for more detailed information
+	describing how to debug pilot-link's core protocols and interfaces.
+	Debugging pilot-link will allow us to make pilot-link work better on
+	new devices and with new applications.
 
 
 Reporting Bugs
