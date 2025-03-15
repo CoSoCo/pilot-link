@@ -1709,7 +1709,7 @@ print_fileinfo(const char *path, FileRef file)
 static void
 print_dir(long volume, const char *path, FileRef dir)
 {
-	unsigned long		it						= 0;
+	int					it						= vfsIteratorStart;
 	int					max						= 64;
 	struct VFSDirInfo	infos[64];
 	int					i;

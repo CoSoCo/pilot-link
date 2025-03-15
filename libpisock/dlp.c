@@ -4311,7 +4311,9 @@ dlp_VFSDirCreate(int sd, int volRefNum, const char *path)
 
 int
 dlp_VFSDirEntryEnumerate(int sd, FileRef dirRefNum,
-		unsigned long *dirIterator, int *maxDirItems, struct VFSDirInfo *data)
+		int *dirIterator, int *maxDirItems, struct VFSDirInfo *data)
+		// for older compilers where int is 16 bit:
+		// long *dirIterator, int *maxDirItems, struct VFSDirInfo *data)
 {
 	int result;
 	unsigned int entries, from, at, slen, count;
@@ -4375,7 +4377,7 @@ dlp_VFSDirEntryEnumerate(int sd, FileRef dirRefNum,
 		}
 		*maxDirItems = count;
 	} else {
-		*dirIterator = (unsigned long)vfsIteratorStop;
+		*dirIterator = vfsIteratorStop;
 		entries = 0;
 	}
 
