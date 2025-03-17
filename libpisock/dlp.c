@@ -4460,12 +4460,15 @@ dlp_VFSVolumeEnumerate(int sd, int *numVols, int *volRefs)
 
 		LOG((PI_DBG_DLP, PI_DBG_LVL_INFO, "DLP VFSVolumeEnumerate %d\n", vols));
 
-		for (int i = 0; i < vols && found < *numVols; i++) {
+		int i = 0;
+		for ( ; i < vols && found < *numVols; i++) {
 			int volRef = get_short(DLP_RESPONSE_DATA (res, 0, 2 + (2 * i)));
 			if (volRef == 1 && volRefs[0] == 1)  continue;
 			volRefs[found++] = volRef;
 			LOG((PI_DBG_DLP, PI_DBG_LVL_INFO, "  %d Volume-Refnum %d\n", i, volRefs[i]));
 		}
+		if (i < vols)
+			LOG((PI_DBG_USER, PI_DBG_LVL_WARN, "  emumerated only %d of %d existing volumes\n", found, found + vols - i));
 	}
 	*numVols = found;
 
