@@ -143,10 +143,20 @@ Building pilot-link on Linux/Unix systems
 	directory with your specific arguments. "./configure --help" will
 	describe all of them.
 
+	If you want to run some of the command line programs, e.g. `pilot-xfer`,
+	pass autogen.sh or configure the argument:
+
+		$ ./configure --enable-conduits
+
 	If you want to install in some place other than the default location of
-	/usr/local, pass configure an argument such as:
+	/usr/local, pass autogen.sh or configure an argument such as:
 
 		$ ./configure --prefix=/home/fred/pilot
+
+	If you want you want to debug the program with Linux gdb debugger,
+	pass autogen.sh or configure an argument such as:
+
+		$ ./configure CFLAGS="-ggdb -Wall" ...
 
 	If configure ran successfully, you should run 'make' to build the
 	software.
@@ -174,6 +184,10 @@ Building pilot-link on Linux/Unix systems
 	/usr/local will be used.
 
 		# make install
+
+	For the smallest footprint of the final distribution you may consider:
+
+		$ ./configure -g0
 
 Building pilot-link on OS/2
 ---------------------------
