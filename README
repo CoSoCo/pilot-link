@@ -187,7 +187,7 @@ Building pilot-link on Linux/Unix systems
 
 	For the smallest footprint of the final distribution you may consider:
 
-		$ ./configure -g0
+		$ ./configure CFLAGS=-g0
 
 Building pilot-link on OS/2
 ---------------------------

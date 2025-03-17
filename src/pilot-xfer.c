@@ -2327,7 +2327,7 @@ main(int argc, const char *argv[])
 
 		/* action indicators that take no arguments. */
 		{"list",     'l', POPT_ARG_NONE, NULL, palm_op_list, "List all application and 3rd party Palm data/apps", NULL},
-		{"cardinfo", 'C', POPT_ARG_NONE, NULL, palm_op_cardinfo, "Show information on available cards", NULL},
+		{"cardinfo", 'C', POPT_ARG_NONE, NULL, palm_op_cardinfo, "Show information on available card and built-in volumes", NULL},
 
 		/* action indicators that may be mixed in with the others */
 		{"Purge",    'P', POPT_BIT_SET, &sync_flags, PURGE, "Purge any deleted data that hasn't been cleaned up", NULL},

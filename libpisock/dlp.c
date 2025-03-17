@@ -4424,13 +4424,28 @@ dlp_VFSVolumeFormat(int sd, unsigned char flags, int fsLibRef, struct VFSSlotMou
 int
 dlp_VFSVolumeEnumerate(int sd, int *numVols, int *volRefs)
 {
-	int	result;
+	int result, found = 0;
+	struct VFSInfo  volInfo;
 	struct dlpRequest *req;
 	struct dlpResponse *res;
 
+	if (*numVols <= 0)
+		return -1;
 	RequireDLPVersion(sd,1,2);
 	Trace(dlp_VFSVolumeEnumerate);
 	pi_reset_errors(sd);
+
+	// On the Palm Centro, Treo 650 and maybe more, there is a regular
+	// file system on the built-in memory. It appears it is hidden from the
+	// dlpFuncVFSVolumeEnumerate request and the first non-hidden volRef is 2.
+	// So first check the existence of it with volRef 1.
+	if ((result = dlp_VFSVolumeInfo(sd, 1, &volInfo)) < 0) {
+		LOG ((PI_DBG_DLP, PI_DBG_LVL_ERR,
+				"palm_cardinfo: dlp_VFSVolumeInfo[1] returned %i\n", result));
+		volRefs[found] = -1;
+	} else {
+		volRefs[found++] = 1;
+	}
 
 	req = dlp_request_new (dlpFuncVFSVolumeEnumerate, 0);
 	if (req == NULL)
@@ -4441,22 +4456,18 @@ dlp_VFSVolumeEnumerate(int sd, int *numVols, int *volRefs)
 	dlp_request_free(req);
 
 	if (result > 0) {
-		int vols, i;
-
-		vols = get_short(DLP_RESPONSE_DATA (res, 0, 0));
+		int vols = get_short(DLP_RESPONSE_DATA (res, 0, 0));
 
 		LOG((PI_DBG_DLP, PI_DBG_LVL_INFO, "DLP VFSVolumeEnumerate %d\n", vols));
 
-		if (vols) {
-			for (i = 0; i < vols && i < *numVols; i++) {
-				volRefs[i] = get_short(DLP_RESPONSE_DATA (res, 0, 2 + (2 * i)));
-				LOG((PI_DBG_DLP, PI_DBG_LVL_INFO, "  %d Volume-Refnum %d\n", i, volRefs[i]));
-			}
+		for (int i = 0; i < vols && found < *numVols; i++) {
+			int volRef = get_short(DLP_RESPONSE_DATA (res, 0, 2 + (2 * i)));
+			if (volRef == 1 && volRefs[0] == 1)  continue;
+			volRefs[found++] = volRef;
+			LOG((PI_DBG_DLP, PI_DBG_LVL_INFO, "  %d Volume-Refnum %d\n", i, volRefs[i]));
 		}
-		*numVols = vols;
 	}
-	else
-		*numVols = 0;
+	*numVols = found;
 
 	dlp_response_free(res);
 
