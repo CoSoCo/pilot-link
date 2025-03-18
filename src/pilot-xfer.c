@@ -1839,6 +1839,7 @@ mediatype (struct VFSInfo *info)
 
 typedef struct cardreport_s {
 	char				*type;
+	char				*hidden;
 	long				size_total;
 	long				size_used;
 	long				size_free;
@@ -1856,8 +1857,7 @@ palm_cardinfo ()
 					volume_count = 16,
 					volumes[16];
 	cardreport_t	*cards = NULL,
-					*t,
-					*t2;
+					*t;
 	struct VFSInfo	info;
 	char			buf[vfsMAXFILENAME],
 					fmt[64];
@@ -1865,7 +1865,9 @@ palm_cardinfo ()
 					size_total;
 	int				len;					/* should be size_t in dlp.c? */
 	
+	const size_t	CONDENSE = 3;
 	size_t			digits_type = 10,
+					digits_hidden = 6 - CONDENSE,
 					digits_total = 4,
 					digits_used = 4,
 					digits_free = 4,
@@ -1899,10 +1901,12 @@ palm_cardinfo ()
 		dlp_VFSVolumeGetLabel (sd, volumes[i], &len, buf);
 
 		t = malloc (sizeof (cardreport_t));
-		t->size_used = size_used;
-		t->size_total = size_total;
-		t->size_free = size_total - size_used;
 		t->type = mediatype(&info);
+		t->hidden = (info.attributes & vfsVolAttrHidden) ? "x" : " ";
+		// alternative: t->hidden = (info.attributes & vfsVolAttrHidden) ? "y" : "n";
+		t->size_total = size_total;
+		t->size_used = size_used;
+		t->size_free = size_total - size_used;
 		t->cardnum = info.slotRefNum;
 		t->name = malloc (strlen(buf) + 1);
 		strcpy (&t->name[1], buf);
@@ -1913,11 +1917,11 @@ palm_cardinfo ()
 			t->next = cards;
 			cards = t;
 		} else {
-			t2 = cards;
-			while (t2->next != NULL && t2->next->cardnum < t->cardnum)
-				t2 = t2->next;
-			t->next = t2->next;
-			t2->next = t;
+			cardreport_t *tmp = cards;
+			while (tmp->next != NULL && tmp->next->cardnum < t->cardnum)
+				tmp = tmp->next;
+			t->next = tmp->next;
+			tmp->next = t;
 		}
 
 		/* Determine field widths */
@@ -1926,28 +1930,29 @@ palm_cardinfo ()
 		if (j > NAME)				\
 				NAME = j
 		FIELDWIDTH (digits_type, (t->type==NULL ? sizeof(unknown_type) : strlen(t->type)));
-		FIELDWIDTH (digits_used, numdigits(t->size_used));
+		FIELDWIDTH (digits_hidden, strlen(t->hidden));
 		FIELDWIDTH (digits_total, numdigits(t->size_total));
+		FIELDWIDTH (digits_used, numdigits(t->size_used));
 		FIELDWIDTH (digits_free, numdigits(t->size_free));
 		FIELDWIDTH (digits_cardnum, numdigits(t->cardnum));
 #undef FIELDWIDTH
 	}
 
 	memset(fmt,0,sizeof(fmt));
-	snprintf (fmt, sizeof(fmt)-1, "%%-%zus  %%%zus  %%%zus  %%%zus  %%-%zus  %%s\n",
-			digits_type, digits_used, digits_total, digits_free,
+	snprintf (fmt, sizeof(fmt)-1, "%%-%zus  %%-%zus  %%%zus  %%%zus  %%%zus  %%-%zus  %%s\n",
+			digits_type, digits_hidden, digits_total - CONDENSE, digits_used, digits_free,
 			digits_cardnum);
 	
-	printf (fmt, "Filesystem", "Size", "Used", "Free", "#", "Card name");
+	printf (fmt, "Filesystem", "Hidden", "Size", "Used", "Free", "#", "Card name");
 
 	memset(fmt,0,sizeof(fmt));
-	snprintf (fmt, sizeof(fmt)-1, "%%-%zus  %%%zuli  %%%zuli  %%%zuli  %%%zui  %%s\n",
-			digits_type, digits_used, digits_total, digits_free,
+	snprintf (fmt, sizeof(fmt)-1, "%%-%zus  %%-%zus  %%%zuli  %%%zuli  %%%zuli  %%%zui  %%s\n",
+			digits_type, digits_hidden, digits_total, digits_used, digits_free,
 			digits_cardnum);
 
 	for (t = cards; t != NULL; t = t->next) {
-		printf (fmt, t->type==NULL ? unknown_type : t->type, t->size_used, t->size_total,
-				t->size_free, t->cardnum, t->name);
+		printf (fmt, t->type==NULL ? unknown_type : t->type, t->hidden,
+				t->size_total, t->size_used, t->size_free, t->cardnum, t->name);
 	}
 
 cleanup:
