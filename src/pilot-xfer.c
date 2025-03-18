@@ -1866,12 +1866,12 @@ palm_cardinfo ()
 	int				len;					/* should be size_t in dlp.c? */
 	
 	const size_t	CONDENSE = 3;
-	size_t			digits_type = 10,
-					digits_hidden = 6 - CONDENSE,
-					digits_total = 4,
-					digits_used = 4,
-					digits_free = 4,
-					digits_cardnum = 1;
+	size_t			width_type = 10,
+					width_hidden = 6 - CONDENSE,
+					width_total = 4,
+					width_used = 4,
+					width_free = 4,
+					width_cardnum = 1;
 	static const char unknown_type[] = "<unknown>";
 
 	/* VFS info */
@@ -1929,26 +1929,26 @@ palm_cardinfo ()
 		j = FUNC;					\
 		if (j > NAME)				\
 				NAME = j
-		FIELDWIDTH (digits_type, (t->type==NULL ? sizeof(unknown_type) : strlen(t->type)));
-		FIELDWIDTH (digits_hidden, strlen(t->hidden));
-		FIELDWIDTH (digits_total, numdigits(t->size_total));
-		FIELDWIDTH (digits_used, numdigits(t->size_used));
-		FIELDWIDTH (digits_free, numdigits(t->size_free));
-		FIELDWIDTH (digits_cardnum, numdigits(t->cardnum));
+		FIELDWIDTH (width_type, (t->type==NULL ? sizeof(unknown_type) : strlen(t->type)));
+		FIELDWIDTH (width_hidden, strlen(t->hidden));
+		FIELDWIDTH (width_total, numdigits(t->size_total));
+		FIELDWIDTH (width_used, numdigits(t->size_used));
+		FIELDWIDTH (width_free, numdigits(t->size_free));
+		FIELDWIDTH (width_cardnum, numdigits(t->cardnum));
 #undef FIELDWIDTH
 	}
 
 	memset(fmt,0,sizeof(fmt));
 	snprintf (fmt, sizeof(fmt)-1, "%%-%zus  %%-%zus  %%%zus  %%%zus  %%%zus  %%-%zus  %%s\n",
-			digits_type, digits_hidden, digits_total - CONDENSE, digits_used, digits_free,
-			digits_cardnum);
+			width_type, width_hidden, width_total - CONDENSE, width_used, width_free,
+			width_cardnum);
 	
 	printf (fmt, "Filesystem", "Hidden", "Size", "Used", "Free", "#", "Card name");
 
 	memset(fmt,0,sizeof(fmt));
 	snprintf (fmt, sizeof(fmt)-1, "%%-%zus  %%-%zus  %%%zuli  %%%zuli  %%%zuli  %%%zui  %%s\n",
-			digits_type, digits_hidden, digits_total, digits_used, digits_free,
-			digits_cardnum);
+			width_type, width_hidden, width_total, width_used, width_free,
+			width_cardnum);
 
 	for (t = cards; t != NULL; t = t->next) {
 		printf (fmt, t->type==NULL ? unknown_type : t->type, t->hidden,
