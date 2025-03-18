@@ -25,7 +25,7 @@ dnl Pilot Link Version
 dnl ******************************
 PILOT_LINK_VERS=0
 PILOT_LINK_MAJOR=13
-PILOT_LINK_MINOR=1
+PILOT_LINK_MINOR=2
 PILOT_LINK_PATCH=
 
 AC_SUBST(PILOT_LINK_VERS)
@@ -42,7 +42,7 @@ dnl http://sources.redhat.com/autobook/autobook/autobook_91.html
 dnl ******************************
 PISOCK_CURRENT=10
 PISOCK_REVISION=1
-PISOCK_AGE=0
+PISOCK_AGE=1
 
 AC_SUBST(PISOCK_CURRENT)
 AC_SUBST(PISOCK_REVISION)
