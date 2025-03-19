@@ -1678,7 +1678,7 @@ palm_list_internal(unsigned long int flags)
  *
  ***********************************************************************/
 static void
-print_fileinfo(const char *path, FileRef file)
+print_fileinfo(const char *path, FileRef file, unsigned long attributes)
 {
 	int		size;
 	time_t	date;
@@ -1688,7 +1688,7 @@ print_fileinfo(const char *path, FileRef file)
 	(void) dlp_VFSFileGetDate(sd,file,vfsFileDateModified,&date);
 	s = ctime(&date);
 	s[24]=0;
-	printf("   %8d %s  %s\n",size,s,path);
+	printf("   %02X %8d %s  %s\n",attributes,size,s,path);
 }
 
 /***********************************************************************
@@ -1743,6 +1743,7 @@ print_dir(long volume, const char *path, FileRef dir)
 	while (dlp_VFSDirEntryEnumerate(sd,dir,&it,&max,infos) >= 0)
 	{
 		if (max<1) break;
+		printf("   %d files in %s...\n",max,vfsdir);
 		for (i = 0; i<max; i++)
 		{
 			memset(buf+pathlen,0,vfsMAXFILENAME-pathlen);
@@ -1751,7 +1752,7 @@ print_dir(long volume, const char *path, FileRef dir)
 			{
 				printf("   %s: No such file or directory.\n",infos[i].name);
 			} else {
-				print_fileinfo(infos[i].name, file);
+				print_fileinfo(infos[i].name, file, infos[i].attr);
 				dlp_VFSFileClose(sd,file);
 			}
 		}
@@ -2153,7 +2154,7 @@ static void palm_list_VFSDir(long volume, const char *path)
 		print_dir(volume,path,file);
 	} else {
 		/* file */
-		print_fileinfo(path,file);
+		print_fileinfo(path,file,attributes);
 	}
 
 	(void) dlp_VFSFileClose(sd,file);
