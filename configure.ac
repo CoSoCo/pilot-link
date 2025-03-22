@@ -25,7 +25,7 @@ dnl Pilot Link Version
 dnl ******************************
 PILOT_LINK_VERS=0
 PILOT_LINK_MAJOR=13
-PILOT_LINK_MINOR=2
+PILOT_LINK_MINOR=3
 PILOT_LINK_PATCH=
 
 AC_SUBST(PILOT_LINK_VERS)
@@ -41,12 +41,12 @@ dnl Please see the following URL for details:
 dnl http://sources.redhat.com/autobook/autobook/autobook_91.html
 dnl ******************************
 PISOCK_CURRENT=10
-PISOCK_REVISION=1
-PISOCK_AGE=1
+PISOCK_AGE=2
+PISOCK_REVISION=0
 
 AC_SUBST(PISOCK_CURRENT)
-AC_SUBST(PISOCK_REVISION)
 AC_SUBST(PISOCK_AGE)
+AC_SUBST(PISOCK_REVISION)
 
 
 dnl ******************************
@@ -54,12 +54,12 @@ dnl Pilot Link Sync Library Version
 dnl libpisync.so
 dnl ******************************
 PISYNC_CURRENT=1
-PISYNC_REVISION=3
 PISYNC_AGE=0
+PISYNC_REVISION=3
 
 AC_SUBST(PISYNC_CURRENT)
-AC_SUBST(PISYNC_REVISION)
 AC_SUBST(PISYNC_AGE)
+AC_SUBST(PISYNC_REVISION)
 
 dnl Eat -Werror so configure will run properly, if the user provided it
 enable_werror=no
