@@ -2030,9 +2030,9 @@ findVFSRoot_clumsy(const char *root_component, long *match)
 		return 0;
 	}
 
-	if ((matched_volume < 0) && (1 == volume_count)) {
-		/* Assume that with one card, just go look there. */
-		*match = volumes[0];
+	if ((matched_volume < 0) && (volume_count > 0)) {
+		/* Assume that with at least one card, just go look in the last one. */
+		*match = volumes[volume_count - 1];
 		return 1;
 	}
 	return -1;
