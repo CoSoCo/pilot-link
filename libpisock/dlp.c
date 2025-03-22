@@ -4452,6 +4452,8 @@ dlp_VFSVolumeEnumerate(int sd, int *numVols, int *volRefs)
 		return pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
 
 	result = dlp_exec(sd, req, &res);
+	// -301 : PalmOS Error. Probably no volume (SDCard) found, but hidden volume 1 may exist
+	//    4 : At least one volume found, but additional hidden volume 1 may exist
 
 	dlp_request_free(req);
 
@@ -4471,7 +4473,7 @@ dlp_VFSVolumeEnumerate(int sd, int *numVols, int *volRefs)
 
 	dlp_response_free(res);
 
-	return result;
+	return (result < 0 && found > 0) ? 4 : result;
 }
 
 int
