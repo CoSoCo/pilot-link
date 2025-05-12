@@ -118,8 +118,8 @@ typedef unsigned long FileRef;			/**< Type for file references when working with
 
 /** @brief Information retrieved by dlp_VFSDirEntryEnumerate() */
 struct VFSDirInfo {
-	unsigned long attr;			/**< File or directory attributes (see VSF File attribute definitions) */
-	char name[vfsMAXFILENAME];		/**< File or directory name */
+	unsigned long attr;	/**< File or directory attributes (see #dlpVFSFileAttributeConstants enum) */
+	char *name;			/**< File or directory name (should be freed after use) */
 };
 
 /** @brief Information used to format a volume with dlp_VFSVolumeFormat() */
@@ -1576,10 +1576,8 @@ struct dlpResponse {
 
 	/** @brief Iterate through the entries in a directory
 	 *
-	 * Supported on Palm OS 4.0 and later. At the beginning you set
-	 * @p dirIterator to #vfsIteratorStart, then call this function
-	 * repeatedly until it returns an error code or the iterator becomes
-	 * #vfsIteratorStop.
+	 * Supported on Palm OS 4.0 and later. At the beginning you set @p dirItems
+	 * to an empty #VFSDirInfo pointer variable, and then call this function.
 	 *
 	 * @bug On some early OS 5 devices like Tungsten T and Sony NX70, NX73 this
 	 * call crashes the device. This has been confirmed to be a bug in HotSync on
@@ -1587,17 +1585,12 @@ struct dlpResponse {
 	 * device with this call too.
 	 *
 	 * @param sd Socket number
-	 * @param dirref Directory reference obtained from dlp_VFSFileOpen()
-	 * @param diriterator Ptr to an iterator. Start with #vfsIteratorStart
-	 * @param maxitems On input, the max number of VFSDirInfo structures stored in @p dirItems. On output, the actual number of items.
-	 * @param diritems Preallocated array that contains a number of VFSDirInfo structures on return.
-	 * @return A negative value if an error occured (see pi-error.h)
+	 * @param dirRef Directory reference obtained from dlp_VFSFileOpen()
+	 * @param dirItems On input, NULL pointer to #VFSDirInfo structure. On output, a pointer to the array of retrieved #VFSDirInfo structures. You are too responsible for free()'ing it, once you're done with it. Additionally for each @p VFSDirInfo.name fields a char buffer is allocated, which must be free()'ed too after use, before free()'ing the whole array of retrieved #VFSDirInfo structures. 
+	 * @return The number of #VFSDirInfo structures stored in @p dirItems. A negative value, if an error occured (see pi-error.h)
 	 */
 	extern PI_ERR dlp_VFSDirEntryEnumerate
-		PI_ARGS((int sd, FileRef dirref,
-			int *diriterator, int *maxitems, struct VFSDirInfo *diritems));
-			// for older compilers where int is 16 bit:
-			// long *diriterator, int *maxitems, struct VFSDirInfo *diritems));
+		PI_ARGS((int sd, FileRef dirRef, struct VFSDirInfo **dirItems));
 
 	/** @brief Create a new directory on a VFS volume
 	 *

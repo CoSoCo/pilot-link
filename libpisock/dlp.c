@@ -4310,80 +4310,65 @@ dlp_VFSDirCreate(int sd, int volRefNum, const char *path)
 }
 
 int
-dlp_VFSDirEntryEnumerate(int sd, FileRef dirRefNum,
-		int *dirIterator, int *maxDirItems, struct VFSDirInfo *data)
-		// for older compilers where int is 16 bit:
-		// long *dirIterator, int *maxDirItems, struct VFSDirInfo *data)
+dlp_VFSDirEntryEnumerate(int sd, FileRef dirRef, struct VFSDirInfo **dirItems)
 {
 	int result;
-	unsigned int entries, from, at, slen, count;
 	struct dlpRequest *req;
 	struct dlpResponse *res;
 
-	RequireDLPVersion(sd,1,2);
-	TraceX(dlp_VFSDirEntryEnumerate, "dirRef=%ld", dirRefNum);
+	RequireDLPVersion(sd, 1, 2);
+	TraceX(dlp_VFSDirEntryEnumerate, "dirRef=%ld", dirRef);
 	pi_reset_errors(sd);
 
 	req = dlp_request_new (dlpFuncVFSDirEntryEnumerate, 1, 12);
-	if (req == NULL)
-		return pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
+	if (!req)  return pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
+	set_long(DLP_REQUEST_DATA(req, 0, 0), dirRef);
+	set_long(DLP_REQUEST_DATA(req, 0, 4), vfsIteratorStart);
+	
+	for (int buflen=256, dirIterator, last=0; ; buflen*=2, last=result)
+	{
+		set_long(DLP_REQUEST_DATA(req, 0, 8), buflen);
+		result = dlp_exec (sd, req, &res); // returns length of response buffer or error if negative
 
-	set_long (DLP_REQUEST_DATA (req, 0, 0), dirRefNum);
-	set_long (DLP_REQUEST_DATA (req, 0, 4), *dirIterator);
-	set_long (DLP_REQUEST_DATA (req, 0, 8), 8 + *maxDirItems * (4 + vfsMAXFILENAME));
+		if (result > 0) {
+			dirIterator = get_long(DLP_RESPONSE_DATA(res, 0, 0));
+			result = get_long(DLP_RESPONSE_DATA(res, 0, 4));
 
-	result = dlp_exec (sd, req, &res);
-
-	dlp_request_free (req);
-
-	if (result > 0) {
-		*dirIterator = get_long (DLP_RESPONSE_DATA (res, 0, 0));
-		entries = get_long (DLP_RESPONSE_DATA (res, 0, 4));
-
-		LOG((PI_DBG_DLP, PI_DBG_LVL_INFO,
-				"%d results returnd (ilterator: %d)\n", entries, *dirIterator));
-
-		from  = 8;
-		count = 0;
-
-		for (at = 0; at < entries; at++) {
-			if (*maxDirItems > at) {
-				data[at].attr =
-					get_long(DLP_RESPONSE_DATA (res, 0, from));
-
-				/* fix for Sony sims (and probably devices too): they return
-				   the attributes in the high word of attr instead of the low
-				   word. We can safely shift it since the high 16 bits are not
-				   used for VFS flags */
-				if ((data[at].attr & 0x0000FFFF) == 0 &&
-					(data[at].attr & 0xFFFF0000) != 0)
-					data[at].attr >>= 16;
-
-				strncpy (data[at].name,
-						DLP_RESPONSE_DATA(res, 0, from + 4), vfsMAXFILENAME);
-				data[at].name[vfsMAXFILENAME-1] = 0;
-				count++;
+			LOG((PI_DBG_DLP, PI_DBG_LVL_INFO,
+					"%d entries returned (iterator: %d)\n", result, dirIterator));
+			// loop further if iteration not complete and too increase of entries:
+			if (dirIterator != vfsIteratorStop && result > last) {
+				dlp_response_free (res);
+				continue;
 			}
+			dlp_request_free (req);
+			struct VFSDirInfo *infos = malloc(sizeof(*infos) * result);
+			if (!infos)  result = pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
 
-			/* Zero terminated string. Strings that have an
-			 even length will be null terminated and have a
-			 pad byte. */
-			slen = strlen (DLP_RESPONSE_DATA(res, 0, from + 4)) + 1;
-			if (slen & 1)
-				slen++;	/* make even stringlen + NULL */
+			for (int i=0, offset=8, slen; i<result; i++, offset+=slen) {
+				infos[i].attr = get_long(DLP_RESPONSE_DATA(res, 0, offset));
+				// Fix for Sony sims (and probably devices too): They return
+				// the attributes in the high word of attr instead of the low word.
+				// We can safely shift it since the high 16 bits are not used for VFS flags.
+				if ((infos[i].attr & 0x0000FFFF) == 0 && (infos[i].attr & 0xFFFF0000) != 0)
+					infos[i].attr >>= 16;
 
-			/* 6 = 4 (attr) + 1 (NULL)  -+ 1 (PADDING) */
-			from += slen + 4;
+				char *name = DLP_RESPONSE_DATA(res, 0, offset += 4);
+				if (!(infos[i].name = malloc(slen = strlen(name) + 1))) {
+					result = pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
+					for (; --i>=0; )  free(infos[i].name);
+					break;
+				}
+				strcpy(infos[i].name, name);
+				// Strings with an odd length including the terminating zero
+				// are followed by a pad byte.
+				if (slen & 1)  slen++;
+			}
+			*dirItems = infos;
 		}
-		*maxDirItems = count;
-	} else {
-		*dirIterator = vfsIteratorStop;
-		entries = 0;
+		dlp_response_free (res);
+		return result;
 	}
-
-	dlp_response_free (res);
-
-	return result;
 }
 
 int
