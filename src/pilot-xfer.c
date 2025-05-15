@@ -1709,7 +1709,7 @@ print_dir(long volume, const char *path, FileRef dir)
 {
 	int					it						= vfsIteratorStart;
 	int					max						= 64;
-	struct VFSDirInfo	infos[64];
+	struct VFSDirInfo	infos[max];
 	int					i;
 	FileRef				file;
 	char				buf[vfsMAXFILENAME];
@@ -1717,40 +1717,45 @@ print_dir(long volume, const char *path, FileRef dir)
 
 	/* Set up buf so it contains path with trailing / and
 	   buflen points to the terminating NUL. */
-	if (pathlen<1)
-	{
+	if (pathlen < 1) {
 		printf("   NULL path.\n");
 		return;
 	}
 
-	memset(buf,0,vfsMAXFILENAME);
-	strncpy(buf,path,vfsMAXFILENAME-1);
+	memset(buf, 0, vfsMAXFILENAME);
+	strncpy(buf, path, vfsMAXFILENAME-1);
 
-	if (buf[pathlen-1] != '/')
-	{
-		buf[pathlen]='/';
-		pathlen++;
+	if (buf[pathlen-1] != '/') {
+		buf[pathlen++]='/';
 	}
 
-	if (pathlen>vfsMAXFILENAME-2)
-	{
+	if (pathlen > vfsMAXFILENAME-2) {
 		printf("   Path too long.\n");
 		return;
 	}
 
-	while (dlp_VFSDirEntryEnumerate(sd,dir,&it,&max,infos) >= 0)
-	{
-		if (max<1) break;
-		for (i = 0; i<max; i++)
-		{
-			memset(buf+pathlen,0,vfsMAXFILENAME-pathlen);
-			strncpy(buf+pathlen,infos[i].name,vfsMAXFILENAME-pathlen);
-			if (dlp_VFSFileOpen(sd,volume,buf,dlpVFSOpenRead,&file) < 0)
-			{
-				printf("   %s: No such file or directory.\n",infos[i].name);
+	for (int entries; ; ) {
+		if ((entries = dlp_VFSDirEntryEnumerate(sd, dir, &it, &max, infos)) < 0) {
+			fprintf(stderr, "print_dir: %s\n", pi_err_message(entries));
+			LOG((PI_DBG_USER, PI_DBG_LVL_ERR,
+					"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", pi_err_message(entries)));
+			if (entries == PI_ERR_DLP_PALMOS) {
+				fprintf(stderr, "print_dir: %s\n", dlp_err_message(pi_palmos_error(sd)));
+				LOG((PI_DBG_USER, PI_DBG_LVL_ERR,
+						"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", dlp_err_message(pi_palmos_error(sd))));
+			}
+			break;
+		}
+
+		if (max < 1)  break;
+		for (i = 0; i<max; i++) {
+			memset(buf+pathlen, 0, vfsMAXFILENAME-pathlen);
+			strncpy(buf+pathlen, infos[i].name, vfsMAXFILENAME-pathlen);
+			if (dlp_VFSFileOpen(sd, volume, buf, dlpVFSOpenRead, &file) < 0) {
+				printf("   %s: No such file or directory.\n", infos[i].name);
 			} else {
 				print_fileinfo(infos[i].name, file);
-				dlp_VFSFileClose(sd,file);
+				dlp_VFSFileClose(sd, file);
 			}
 		}
 	}
