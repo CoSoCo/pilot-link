@@ -1715,20 +1715,36 @@ print_dir(long volume, const char *dirPath, FileRef dirRef)
 	// Set up filePath so it contains dirPath with trailing / and
 	// pathlen points to the terminating NUL.
 	if (pathlen == 0) {
-		printf("   NULL path.\n");
+		printf("   NULL dirPath.\n");
 		return;
 	}
-	memset(filePath, 0, vfsMAXFILENAME);
+
+	filePath[vfsMAXFILENAME-1] = 0;
 	strncpy(filePath, dirPath, vfsMAXFILENAME-1);
+
 	if (filePath[pathlen-1] != '/') {
 		filePath[pathlen++]='/';
 	}
+
 	if (pathlen > vfsMAXFILENAME-2) {
-		printf("   Dir path too long.\n");
+		printf("   dirPath too long.\n");
 		return;
 	}
 
 	int entries = dlp_VFSDirEntryEnumerate(sd, dirRef, &infos);
+	if (entries < 0) {
+		LOG((PI_DBG_USER, PI_DBG_LVL_ERR,
+				"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", pi_err_message(entries)));
+		if (entries == PI_ERR_DLP_PALMOS) {
+			entries = pi_palmos_error(sd);
+			LOG((PI_DBG_USER, PI_DBG_LVL_ERR,
+					"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", dlp_err_message(entries)));
+			if (entries != expErrEnumerationEmpty)
+				fprintf(stderr, "    dlp_VFSDirEntryEnumerate returned %s\n", dlp_err_message(entries));
+		} else
+			fprintf(stderr, "    dlp_VFSDirEntryEnumerate returned %s\n", pi_err_message(entries));
+		return;
+	}
 
 	for (int i = 0; i<entries; i++) {
 		memset(filePath+pathlen, 0, vfsMAXFILENAME-pathlen);
@@ -1741,7 +1757,7 @@ print_dir(long volume, const char *dirPath, FileRef dirRef)
 		}
 		free(infos[i].name);
 	}
-	free(infos); // Do only, if allocated.
+	free(infos);
 	return;
 }
 
