@@ -1705,53 +1705,53 @@ print_fileinfo(const char *path, FileRef file)
  *
  ***********************************************************************/
 static void
-print_dir(long volume, const char *path, FileRef dir)
+print_dir(long volume, const char *dirPath, FileRef dir)
 {
-	int					it						= vfsIteratorStart;
-	int					max						= 64;
-	struct VFSDirInfo	infos[max];
-	int					i;
+	static const int	BUFFSIZE				= 4;
+	struct VFSDirInfo	infos[BUFFSIZE];
 	FileRef				file;
-	char				buf[vfsMAXFILENAME];
-	int					pathlen					= strlen(path);
+	char				filePath[vfsMAXFILENAME];
+	int					pathlen					= strlen(dirPath);
 
-	/* Set up buf so it contains path with trailing / and
+	/* Set up filePath so it contains dirPath with trailing / and
 	   buflen points to the terminating NUL. */
 	if (pathlen < 1) {
-		printf("   NULL path.\n");
+		printf("   NULL dirPath.\n");
 		return;
 	}
 
-	memset(buf, 0, vfsMAXFILENAME);
-	strncpy(buf, path, vfsMAXFILENAME-1);
+	filePath[vfsMAXFILENAME-1] = 0;
+	strncpy(filePath, dirPath, vfsMAXFILENAME-1);
 
-	if (buf[pathlen-1] != '/') {
-		buf[pathlen++]='/';
+	if (filePath[pathlen-1] != '/') {
+		filePath[pathlen++]='/';
 	}
 
 	if (pathlen > vfsMAXFILENAME-2) {
-		printf("   Path too long.\n");
+		printf("   dirPath too long.\n");
 		return;
 	}
 
-	for (int entries; ; ) {
-		if ((entries = dlp_VFSDirEntryEnumerate(sd, dir, &it, &max, infos)) < 0) {
-			fprintf(stderr, "print_dir: %s\n", pi_err_message(entries));
+	for (int it=vfsIteratorStart, max=BUFFSIZE, result; ; max=BUFFSIZE) {
+		if ((result = dlp_VFSDirEntryEnumerate(sd, dir, &it, &max, infos)) < 0) {
 			LOG((PI_DBG_USER, PI_DBG_LVL_ERR,
-					"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", pi_err_message(entries)));
-			if (entries == PI_ERR_DLP_PALMOS) {
-				fprintf(stderr, "print_dir: %s\n", dlp_err_message(pi_palmos_error(sd)));
+					"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", pi_err_message(result)));
+			if (result == PI_ERR_DLP_PALMOS) {
+				result = pi_palmos_error(sd);
 				LOG((PI_DBG_USER, PI_DBG_LVL_ERR,
-						"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", dlp_err_message(pi_palmos_error(sd))));
-			}
+						"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", dlp_err_message(result)));
+				if (result != expErrEnumerationEmpty)
+					fprintf(stderr, "    dlp_VFSDirEntryEnumerate returned %s\n", dlp_err_message(result));
+			} else
+				fprintf(stderr, "    dlp_VFSDirEntryEnumerate returned %s\n", pi_err_message(result));
 			break;
 		}
 
 		if (max < 1)  break;
-		for (i = 0; i<max; i++) {
-			memset(buf+pathlen, 0, vfsMAXFILENAME-pathlen);
-			strncpy(buf+pathlen, infos[i].name, vfsMAXFILENAME-pathlen);
-			if (dlp_VFSFileOpen(sd, volume, buf, dlpVFSOpenRead, &file) < 0) {
+		for (int i = 0; i<max; i++) {
+			memset(filePath+pathlen, 0, vfsMAXFILENAME-pathlen);
+			strncpy(filePath+pathlen, infos[i].name, vfsMAXFILENAME-pathlen);
+			if (dlp_VFSFileOpen(sd, volume, filePath, dlpVFSOpenRead, &file) < 0) {
 				printf("   %s: No such file or directory.\n", infos[i].name);
 			} else {
 				print_fileinfo(infos[i].name, file);

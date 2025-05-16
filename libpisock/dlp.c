@@ -4427,6 +4427,7 @@ dlp_VFSDirEntryEnumerate(int sd, FileRef dirRefNum,
 	unsigned int entries, from, at, slen, count;
 	struct dlpRequest *req;
 	struct dlpResponse *res;
+//	printf("dlp_VFSDirEntryEnumerate: dirIterator=%d, maxDirItems=%d)\n", *dirIterator, *maxDirItems);
 
 	RequireDLPVersion(sd,1,2);
 	TraceX(dlp_VFSDirEntryEnumerate, "dirRef=%ld", dirRefNum);
@@ -4450,6 +4451,7 @@ dlp_VFSDirEntryEnumerate(int sd, FileRef dirRefNum,
 
 		LOG((PI_DBG_DLP, PI_DBG_LVL_INFO,
 				"%d results returnd (ilterator: %d)\n", entries, *dirIterator));
+//		printf("dlp_exec returned %d (dirIterator=%d, entries=%d)\n", result, *dirIterator, entries);
 
 		from  = 8;
 		count = 0;
@@ -4484,9 +4486,6 @@ dlp_VFSDirEntryEnumerate(int sd, FileRef dirRefNum,
 			from += slen + 4;
 		}
 		*maxDirItems = count;
-	} else {
-		*dirIterator = vfsIteratorStop;
-		entries = 0;
 	}
 
 	dlp_response_free (res);
