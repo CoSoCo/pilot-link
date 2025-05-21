@@ -923,7 +923,7 @@ struct dlpResponse {
 	 * @param version If not NULL
 	 * @return A negative value if an error occured (see pi-error.h), otherwise the size of the preference block
 	 */
-	extern PI_ERR dlp_ReadAppPreference
+	extern int dlp_ReadAppPreference
 		PI_ARGS((int sd, unsigned long creator, int prefid, int backup,
 			int maxsize, void *databuf, size_t *datasize, int *version));
 
@@ -1494,7 +1494,7 @@ struct dlpResponse {
 	 * @param slotref The slot reference as returned by dlp_ExpSlotEnumerate().
 	 * @return A negative value if an error occured (see pi-error.h), >=0 if a card is inserted
 	 */
-	extern PI_ERR dlp_ExpCardPresent
+	extern int dlp_ExpCardPresent
 		PI_ARGS((int sd, int slotref));
 
 	/** @brief Get information about a removable card inserted in an expansion slot
@@ -1635,7 +1635,7 @@ struct dlpResponse {
 	 * @param sd Socket number
 	 * @param dirRef Directory reference obtained from dlp_VFSFileOpen()
 	 * @param dirItems On input, NULL pointer to #VFSDirInfo structure. On output, a pointer to the array of retrieved #VFSDirInfo structures. You are too responsible for free()'ing it, once you're done with it. Additionally for each @p VFSDirInfo.name fields a char buffer is allocated, which must be free()'ed too after use, before free()'ing the whole array of retrieved #VFSDirInfo structures. 
-	 * @return The number of #VFSDirInfo structures stored in @p dirItems. A negative value, if an error occured (see pi-error.h)
+	 * @return A negative value if an error occured (see pi-error.h), the number of found dirItems otherwise.
 	 */
 	extern int dlp_VFSDirEntryEnumerate
 		PI_ARGS((int sd, FileRef dirRef, struct VFSDirInfo **dirItems));
@@ -1698,9 +1698,9 @@ struct dlpResponse {
 
 	/** @brief Open an existing file on a VFS volume
 	 *
-	 * Supported on Palm OS 4.0 and later. On some devices, it is required to open the
-	 * file using the #dlpOpenReadWrite mode to be able to write to it (using
-	 * #dlpOpenWrite is not enough).
+	 * Supported on Palm OS 4.0 and later. On some devices, it is required to open
+	 * the file using the #dlpOpenReadWrite mode to be able to write to it (using
+	 * #dlpOpenWrite is not enough, see: https://github.com/desrod/pilot-link/issues/10).
 	 *
 	 * @param sd Socket number
 	 * @param volref Volume reference number (obtained from dlp_VFSVolumeEnumerate())
@@ -1726,8 +1726,10 @@ struct dlpResponse {
 
 	/** @brief Write data to an open file
 	 *
-	 * Supported on Palm OS 4.0 and later. Will return the number of bytes
-	 * written if successful.
+	 * Supported on Palm OS 4.0 and later. Will return the number of bytes written
+	 * if successful. On some devices, it is required to open the file using
+	 * the #dlpOpenReadWrite mode to be able to write to it (using #dlpOpenWrite
+	 * is not enough, see: https://github.com/desrod/pilot-link/issues/10).
 	 *
 	 * @param sd Socket number
 	 * @param fileref File reference obtained from dlp_VFSFileOpen()
@@ -1735,7 +1737,7 @@ struct dlpResponse {
 	 * @param datasize Length of the data to write
 	 * @return A negative value if an error occured (see pi-error.h), the number of bytes written otherwise.
 	 */
-	extern PI_ERR dlp_VFSFileWrite
+	extern int dlp_VFSFileWrite
 		PI_ARGS((int sd, FileRef fileref, PI_CONST void *databuf, size_t datasize));
 
 	/** @brief Read data from an open file
@@ -1749,7 +1751,7 @@ struct dlpResponse {
 	 * @param reqbytes Number of bytes to read from the file.
 	 * @return A negative value if an error occured (see pi-error.h), or the total number of bytes read
 	 */
-	extern PI_ERR dlp_VFSFileRead
+	extern int dlp_VFSFileRead
 		PI_ARGS((int sd, FileRef fileref, pi_buffer_t *retbuf, size_t reqbytes));
 
 	/** @brief Delete an existing file from a VFS volume
@@ -1790,7 +1792,7 @@ struct dlpResponse {
 	 * @param fileref File reference obtained from dlp_VFSFileOpen()
 	 * @return A negative value if an error occured (see pi-error.h). 0 if not at EOF, >0 if at EOF.
 	 */
-	extern PI_ERR dlp_VFSFileEOF
+	extern int dlp_VFSFileEOF
 		PI_ARGS((int sd, FileRef fileref));
 
 	/** @brief Return the current seek position in an open file
