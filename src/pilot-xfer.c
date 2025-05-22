@@ -1689,9 +1689,14 @@ print_fileinfo(PI_ERR err, FileRef fileRef, const char *path, unsigned long attr
 			err = dlp_VFSFileSize(sd, fileRef, &size);
 	err = (err >= 0) ? dlp_VFSFileGetDate(sd, fileRef, vfsFileDateModified, &epoch) : err;
 	if (err >= 0) {
+		char attr_chars[] = "ladvshr";
+		for (int i=0; i<sizeof(attr_chars)-1; i++) {
+			if (!(attributes & (0x40 >> i)))
+				attr_chars[i] = '-';
+		}
 		char *date = ctime(&epoch);
 		date[24] = 0;
-		printf("   %02X %8d %s  %s\n", attributes, size, date, path);
+		printf("   %s %8d %s  %s\n", attr_chars, size, date, path);
 	} else {
 		if (err != PI_ERR_DLP_PALMOS)
 			printf("   %s", pi_err_message(err));
