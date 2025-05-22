@@ -1735,17 +1735,16 @@ print_dir(long volume, const char *dirPath, FileRef dirRef)
 	}
 
 	int entries = dlp_VFSDirEntryEnumerate(sd, dirRef, &infos);
-	if (entries < 0) {
+	if (entries == 0) {
+		printf("   No files in this directory.\n");
+	} else if (entries < 0) {
 		LOG((PI_DBG_USER, PI_DBG_LVL_ERR,
 				"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", pi_err_message(entries)));
 		if (entries == PI_ERR_DLP_PALMOS) {
 			entries = pi_palmos_error(sd);
 			LOG((PI_DBG_USER, PI_DBG_LVL_ERR,
 					"print_dir: dlp_VFSDirEntryEnumerate returned %s\n", dlp_err_message(entries)));
-			if (entries == expErrEnumerationEmpty)
-				printf("   No files in this directory.\n");
-			else
-				fprintf(stderr, "   dlp_VFSDirEntryEnumerate returned %s\n", dlp_err_message(entries));
+			fprintf(stderr, "   dlp_VFSDirEntryEnumerate returned %s\n", dlp_err_message(entries));
 		} else
 			fprintf(stderr, "   dlp_VFSDirEntryEnumerate returned %s\n", pi_err_message(entries));
 		return;

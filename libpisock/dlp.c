@@ -4437,7 +4437,9 @@ dlp_VFSDirEntryEnumerate(int sd, FileRef dirRef, struct VFSDirInfo **dirItems)
 	for (int buflen=256, dirIterator, last=0; ; buflen*=2, last=result)
 	{
 		set_long(DLP_REQUEST_DATA(req, 0, 8), buflen);
-		result = dlp_exec (sd, req, &res); // returns length of response buffer or error if negative
+		if ((result = dlp_exec (sd, req, &res)) // returns length of response buffer or error if negative
+				== PI_ERR_DLP_PALMOS && pi_palmos_error(sd) == expErrEnumerationEmpty)
+			result = 0;
 
 		if (result > 0) {
 			dirIterator = get_long(DLP_RESPONSE_DATA(res, 0, 0));
@@ -4451,29 +4453,29 @@ dlp_VFSDirEntryEnumerate(int sd, FileRef dirRef, struct VFSDirInfo **dirItems)
 				continue;
 			}
 			dlp_request_free (req);
-			struct VFSDirInfo *infos = malloc(sizeof(*infos) * result);
-			if (!infos)  result = pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
 
-			for (int i=0, offset=8, slen; i<result; i++, offset+=slen) {
-				infos[i].attr = get_long(DLP_RESPONSE_DATA(res, 0, offset));
+			if (dirItems && !(*dirItems = malloc(sizeof(**dirItems) * result)))
+				result = pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
+
+			for (int i=0, offset=8, slen; dirItems && i<result; i++, offset+=slen) {
+				(*dirItems)[i].attr = get_long(DLP_RESPONSE_DATA(res, 0, offset));
 				// Fix for Sony sims (and probably devices too): They return
 				// the attributes in the high word of attr instead of the low word.
 				// We can safely shift it since the high 16 bits are not used for VFS flags.
-				if ((infos[i].attr & 0x0000FFFF) == 0 && (infos[i].attr & 0xFFFF0000) != 0)
-					infos[i].attr >>= 16;
+				if (((*dirItems)[i].attr & 0x0000FFFF) == 0 && ((*dirItems)[i].attr & 0xFFFF0000) != 0)
+					(*dirItems)[i].attr >>= 16;
 
 				char *name = DLP_RESPONSE_DATA(res, 0, offset += 4);
-				if (!(infos[i].name = malloc(slen = strlen(name) + 1))) {
+				if (!((*dirItems)[i].name = malloc(slen = strlen(name) + 1))) {
 					result = pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
-					for (; --i>=0; )  free(infos[i].name);
+					for (; --i>=0; )  free((*dirItems)[i].name);
 					break;
 				}
-				strcpy(infos[i].name, name);
+				strcpy((*dirItems)[i].name, name);
 				// Strings with an odd length including the terminating zero
 				// are followed by a pad byte.
 				if (slen & 1)  slen++;
 			}
-			*dirItems = infos;
 		}
 		dlp_response_free (res);
 		return result;

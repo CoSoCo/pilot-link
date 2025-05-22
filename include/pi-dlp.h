@@ -1634,8 +1634,8 @@ struct dlpResponse {
 	 *
 	 * @param sd Socket number
 	 * @param dirRef Directory reference obtained from dlp_VFSFileOpen()
-	 * @param dirItems On input, NULL pointer to #VFSDirInfo structure. On output, a pointer to the array of retrieved #VFSDirInfo structures. You are too responsible for free()'ing it, once you're done with it. Additionally for each @p VFSDirInfo.name fields a char buffer is allocated, which must be free()'ed too after use, before free()'ing the whole array of retrieved #VFSDirInfo structures. 
-	 * @return A negative value if an error occured (see pi-error.h), the number of found dirItems otherwise.
+	 * @param dirItems On input, pointer array of to #VFSDirInfo structures. If NULL, only the numer of dirItems are returned. On output, if it wasn't Null, it points to a new allocated array of retrieved #VFSDirInfo structures. You are responsible for free()'ing it, once you're done with it. But before free()'ing the whole array, first each char buffer @p VFSDirInfo.name field, which is new allocated by this function, must be free()'ed too after use.
+	 * @return A negative value if an error occured (see pi-error.h), the number of dirItems otherwise.
 	 */
 	extern int dlp_VFSDirEntryEnumerate
 		PI_ARGS((int sd, FileRef dirRef, struct VFSDirInfo **dirItems));
