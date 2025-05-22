@@ -64,73 +64,126 @@ static void record_dump (unsigned long recID, unsigned int recIndex,
 		int flags, int catID, const char *data, int data_len);
 #endif
 
-char *dlp_errorlist[] = {
-	"No error",
-	"General System error",
-	"Illegal Function",
-	"Out of memory",
-	"Invalid parameter",
-	"Not found",
-	"None Open",
-	"Already Open",
-	"Too many Open",
-	"Already Exists",
-	"Cannot Open",
-	"Record deleted",
-	"Record busy",
-	"Operation not supported",
-	"-Unused-",
-	"Read only",
-	"Not enough space",
-	"Limit exceeded",
-	"Sync cancelled",
-	"Bad arg wrapper",
-	"Argument missing",
-	"Bad argument size"
+char *pi_prot_errorList[] = {
+	"aborted by other end",			/**< aborted by other end (-100) */
+	"can't talk with other end",	/**< can't talk with other end (-101) */
+	"bad packet"					/**< bad packet (used with serial protocols) (-102) */
 };
 
-/* Look at "Error codes" in VFSMgr.h in the Palm SDK for their implementation */
-char * vfs_errorlist[] = {
-	"No error",
-	"Buffer Overflow",
-	"Generic file error",
-	"File reference is invalid",
-	"File still open",
-	"Permission denied",
-	"File or folder already exists",
-	"FileEOF",
-	"File not found",
-	"volumereference is invalid",
-	"Volume still mounted",
-	"No filesystem",
-	"Bad data",
-	"Non-empty directory",
-	"Invalid path or filename",
-	"Volume full - not enough space",
-	"Unimplemented",
-	"Not a directory",
-	"Is a directory",
-	"Directory not found",
-	"Name truncated"
+char *pi_sock_errorList[] = {
+	"disconnected",					/**< connection has been broken (-200) */
+	"invalid protocol stack",		/**< invalid protocol stack (-201) */
+	"communications timeout",		/**< communications timeout (but link not known as broken) (-202) */
+	"transfer was canceled",		/**< last data transfer was canceled (-203) */
+	"generic I/O error",			/**< generic I/O error (-204) */
+	"socket can't listen/accept"	/**< socket can't listen/accept (-205) */
+};
+
+char *pi_dlp_errorList[] = {
+	"insufficient buffer size",		/**< provided buffer is not big enough to store data (-300) */
+	"PalmOS error",					/**< a non-zero error was returned by the device (-301) */
+	"unsupported DLP call",			/**< this DLP call is not supported by the connected handheld (-302) */
+	"invalid socket",				/**< invalid socket (-303) */
+	"data block too large",			/**< requested transfer with data block too large (>64k) (-304) */
+	"command error"					/**< command error (the device returned an invalid response) (-305) */
+};
+
+char *pi_file_errorList[] = {
+	"invalid file",									/**< invalid prc/pdb/pqa/pi_file file (-400) */
+	"generic error",								/**< generic error when reading/writing file (-401) */
+	"file transfer aborted by progress callback",	/**< file transfer was aborted by progress callback, see pi_file_retrieve(), pi_file_install(), pi_file_merge() (-402) */
+	"record or resource not found",					/**< record or resource not found (-403) */
+	"record or resource ID/type already exists"		/**< a record with same UID or resource with same type/ID already exists (-404) */
+};
+
+char *pi_generic_errorList[] = {
+	"out of memory",				/**< not enough memory (-500) */
+	"invalid argument(s)",			/**< invalid argument(s) (-501) */
+	"generic system error"			/**< generic system error (-502) */
+};
+
+char *dlp_errorList[] = {
+	"No error",					/**< No error (0x0000) */
+	"General system error",		/**< System error (0x0001) */
+	"Illegal function",			/**< Illegal request, not supported by this version of DLP (0x0002) */
+	"Out of memory",			/**< Not enough memory (0x0003) */
+	"Invalid parameter",		/**< Invalid parameter (0x0004) */
+	"Not found",				/**< File, database or record not found (0x0005) */
+	"None open",				/**< No file opened (0x0006) */
+	"Already open",				/**< File already open (0x0007) */
+	"Too many open",			/**< Too many open files (0x0008) */
+	"Already exists",			/**< File already exists (0x0009) */
+	"Cannot open",				/**< Can't open file (0x000a) */
+	"Record deleted",			/**< File deleted (0x000b) */
+	"Record busy",				/**< Record busy (0x000c) */
+	"Operation not supported",	/**< Call not supported (0x000d) */
+	"-Unused-",					/**< @e Unused (0x000e) */
+	"Read only",				/**< File is read-only (0x000f) */
+	"Not enough space",			/**< Not enough space left on device (0x0010) */
+	"Limit exceeded",			/**< Limit reached (0x0011) */
+	"Sync cancelled",			/**< Sync error (0x0012) */
+	"Bad arg wrapper",			/**< Wrapper error (0x0013) */
+	"Argument missing",			/**< Invalid argument (0x0014) */
+	"Bad argument size"			/**< Invalid size (0x0015) */
+};
+
+/* Look at "Error codes" in the Palm SDK for their implementation
+ * Reference: https://www.nsbasic.com/palm/info/technotes/TN23.htm */
+char *dm_errorList[] = {		 // needs offset of -0x18
+	"Unknown",									/**< Unknown PalmOS data manager error (0x0218) */
+	"Database with same name already exists"	/**< Another database with the same name already exists in RAM store (0x0219) */
+};
+
+/* Look at "Error codes" in the Palm SDK for their implementation
+ * Reference: https://www.nsbasic.com/palm/info/technotes/TN23.htm */
+char *sys_errorList[] = {
+	"No error",					/**< No error (0x0500) */
+	"Unknown",					/**< Unknown PalmOS system error (0x0501) */
+	"Wrong input parameter"		/**< Wrong input parameter (0x0502) */
 };
 
 /* Look at "Error codes" in ExpansionMgr.h in the Palm SDK for their implementation */
-char * exp_errorlist[] = {
-	"No error",
-	"Unsupported Operation",
-	"Not enough Power",
-	"Card not present",
-	"Invalid slotreference number",
-	"Slot deallocated",
-	"Card no sector read/write",
-	"Card read only",
-	"Card bad sector",
-	"Protected sector",
-	"Not open (slot driver)",
-	"still open (slot driver)",
-	"Unimplemented",
-	"Enumeration empty",
-	"Incompatible API version"
+char *exp_errorList[] = {
+	"No error",							/**< No error (0x2900) */
+	"Unsupported Operation",			/**< Unsupported or undefined opcode and/or creator (0x2901) */
+	"Not enough Power",					/**< The required power is not available (0x2902) */
+	"Card not present",					/**< No card is present (0x2903) */
+	"Invalid slot reference number",	/**< Slot reference number is bad (0x2904) */
+	"Slot deallocated",					/**< Slot reference number is within valid range, but has been deallocated (0x2905) */
+	"Card no sector read/write",		/**< The card does not support the SlotDriver block read/write API (0x2906) */
+	"Card read only",					/**< The card does support R/W API but the card is read only (0x2907) */
+	"Card bad sector",					/**< The card does support R/W API but the sector is bad (0x2908) */
+	"Protected sector",					/**< The card does support R/W API but the sector is protected (0x2909) */
+	"Not open (slot driver)",			/**< Slot driver library has not been opened (0x290a) */
+	"still open (slot driver)",			/**< Slot driver library is still open - maybe it was opened > once (0x290b) */
+	"Unimplemented",					/**< Call is unimplemented (0x290c) */
+	"Enumeration empty",				/**< No values remaining to enumerate (0x290d) */
+	"Incompatible API version"			/**< The API version of this slot driver is not supported by this version of ExpansionMgr. (0x290e) */
+};
+
+/* Look at "Error codes" in VFSMgr.h in the Palm SDK for their implementation */
+char *vfs_errorList[] = {
+	"No error",							/**< No error (0x2a00) */
+	"Buffer overflow",					/**< Passed in buffer is too small (0x2a01) */
+	"Generic file error",				/**< Generic file error (0x2a02) */
+	"File reference is invalid",		/**< The fileref is invalid (has been closed, or was not obtained from VFS.Open() ) (0x2a03) */
+	"File still open",					/**< Returned from VFS.Delete if the file is still open (0x2a04) */
+	"Permission denied",				/**< The file is read only (0x2a05) */
+	"File or folder already exists",	/**< A file of this name exists already in this location (0x2a06) */
+	"FileEOF",							/**< File pointer is at end of file (0x2a07) */
+	"File not found",					/**< File was not found at the path specified (0x2a08) */
+	"volume reference is invalid",		/**< The volume refnum is invalid (0x2a09) */
+	"Volume still mounted",				/**< Returned if the volume is still mounted (0x2a0a) */
+	"No filesystem",					/**< No installed filesystem supports this operation (0x2a0b) */
+	"Bad data",							/**< Operation could not be completed because of invalid data (i.e., import DB from .PRC file) (0x2a0c) */
+	"Non-empty directory",				/**< Can't delete a non-empty directory (0x2a0d) */
+	"Invalid path or file name",		/**< Invalid file name, or path, or volume label or something... (0x2a0e) */
+	"Volume full - not enough space",	/**< Not enough space left on volume (0x2a0f) */
+	"Unimplemented",					/**< This call is not implemented (0x2a10) */
+	"Not a directory",					/**< This operation requires a directory (0x2a11) */
+	"Is a directory",					/**< This operation requires a regular file, not a directory (0x2a12) */
+	"Directory not found",				/**< Returned from VFS.FileCreate when the path leading up to the new file does not exist (0x2a13) */
+	"Name truncated"					/**< A volume name or filename was automatically shortened to conform to filesystem spec (0x2a14) */
 };
 
 #ifdef DLP_TRACE
@@ -182,11 +235,12 @@ dlp_set_protocol_version(int major, int minor)
 	dlp_version_minor = minor;
 }
 
+
 /***************************************************************************
  *
- * Function:	dlp_strerror
+ * Function:	pi_err_message
  *
- * Summary:	lookup text for dlp error
+ * Summary:	lookup text for Pilot-Link error
  *
  * Parameters:	error number
  *
@@ -194,15 +248,69 @@ dlp_set_protocol_version(int major, int minor)
  *
  ***************************************************************************/
 char
-*dlp_strerror(int error)
+*pi_err_message(int error)
 {
-	if (error < 0)
-		error = -error;
+	char **list;
+	int size;
+	char *prefix;
 
-	if ((unsigned int) error >= (sizeof(dlp_errorlist) / (sizeof(char *))))
-		return "Unknown error";
+	switch (error / 100) {
+		case PI_PROT_ERR/100 :		list = pi_prot_errorList; size = sizeof(pi_prot_errorList);
+											prefix = "Pilot-Link protokol error: "; break;
+		case PI_SOCK_ERR/100 :		list = pi_sock_errorList; size = sizeof(pi_sock_errorList);
+											prefix = "Pilot-Link socket error: "; break;
+		case PI_DLP_ERR/100 :		list = pi_dlp_errorList; size = sizeof(pi_dlp_errorList);
+											prefix = "Pilot-Link DLP error: "; break;
+		case PI_FILE_ERR/100 :		list = pi_file_errorList; size = sizeof(pi_file_errorList);
+											prefix = "Pilot-Link file error: "; break;
+		case PI_GENERIC_ERR/100 :	list = pi_generic_errorList; size = sizeof(pi_generic_errorList);
+											prefix = "Pilot-Link generic error: "; break;
+		default :				return "Unknown Pilot-Link error";
+	}
+	static char message[128]; // !!! With this static buffer this function is not thread-safe !!!
+	sprintf(message, "%s%s", prefix, (-error % 100) < size / sizeof(char *)
+			? list[-error % 100] : "Unknown");
+	return message;
+}
 
-	return dlp_errorlist[error];
+
+/***************************************************************************
+ *
+ * Function:	dlp_err_message
+ *
+ * Summary:	lookup text for DLP error
+ *
+ * Parameters:	error number
+ *
+ * Returns:     char* to error text string
+ *
+ ***************************************************************************/
+char
+*dlp_err_message(int error)
+{
+	char **list;
+	int size;
+	char *prefix;
+
+	if (error < 0)  error = -error;
+
+	switch (error >> 8) {
+		case DLP_ERR>>8 :		list = dlp_errorList; size = sizeof(dlp_errorList);
+										prefix = "DLP error: "; break;
+		case POS_DM_ERR>>8 :	list = dm_errorList; size = sizeof(dm_errorList); error -= 0x18;
+										prefix = "PalmOS data manager error: "; break;
+		case POS_SYS_ERR>>8 :	list = sys_errorList; size = sizeof(sys_errorList);
+										prefix = "PalmOS system error: "; break;
+		case POS_EXP_ERR>>8 :	list = exp_errorList; size = sizeof(exp_errorList);
+										prefix = "PalmOS expansion error: "; break;
+		case POS_VFS_ERR>>8 :	list = vfs_errorList; size = sizeof(vfs_errorList);
+										prefix = "PalmOS VFS error: "; break;
+		default :				return "Unknown PalmOS error";
+	}
+	static char message[128]; // !!! With this static buffer this function is not thread-safe !!!
+	sprintf(message, "%s%s", prefix, (error & 0xFF) < size / sizeof(char *)
+			? list[error & 0xFF] : "Unknown");
+	return message;
 }
 
 
@@ -2219,7 +2327,7 @@ dlp_ReadFeature(int sd, unsigned long creator, int num, unsigned long *feature)
 
 		if (val < 0) {
 			LOG((PI_DBG_DLP, PI_DBG_LVL_INFO,
-					"DLP ReadFeature Error: %s (%d)\n", dlp_errorlist[-val], val));
+					"DLP ReadFeature Error: %s (%d)\n", dlp_errorList[-val], val));
 			return val;
 		}
 
@@ -2290,7 +2398,7 @@ dlp_GetROMToken(int sd, unsigned long token, void *buffer, size_t *size)
 	if (dlp_trace) {
 		if (val < 0)
 			fprintf(stderr, "Result: Error: %s (%d)\n",
-					dlp_errorlist[-val], val);
+					dlp_errorList[-val], val);
 		else if (result)
 			fprintf(stderr, "FtrGet error 0x%8.8lX\n",
 					(unsigned long) result);
@@ -2315,7 +2423,7 @@ dlp_GetROMToken(int sd, unsigned long token, void *buffer, size_t *size)
 #ifdef DLP_TRACE
 	if (dlp_trace) {
 		if (val < 0)
-			fprintf(stderr, "Result: Error: %s (%d)\n", dlp_errorlist[-val], val);
+			fprintf(stderr, "Result: Error: %s (%d)\n", dlp_errorList[-val], val);
 		else if (result)
 			fprintf(stderr, "FtrGet error 0x%8.8lX\n", (unsigned long) result);
 		else
@@ -4310,80 +4418,68 @@ dlp_VFSDirCreate(int sd, int volRefNum, const char *path)
 }
 
 int
-dlp_VFSDirEntryEnumerate(int sd, FileRef dirRefNum,
-		int *dirIterator, int *maxDirItems, struct VFSDirInfo *data)
-		// for older compilers where int is 16 bit:
-		// long *dirIterator, int *maxDirItems, struct VFSDirInfo *data)
+dlp_VFSDirEntryEnumerate(int sd, FileRef dirRef, struct VFSDirInfo **dirItems)
 {
 	int result;
-	unsigned int entries, from, at, slen, count;
 	struct dlpRequest *req;
 	struct dlpResponse *res;
+//	printf("dlp_VFSDirEntryEnumerate: dirIterator=%d, maxDirItems=%d)\n", *dirIterator, *maxDirItems);
 
-	RequireDLPVersion(sd,1,2);
-	TraceX(dlp_VFSDirEntryEnumerate, "dirRef=%ld", dirRefNum);
+	RequireDLPVersion(sd, 1, 2);
+	TraceX(dlp_VFSDirEntryEnumerate, "dirRef=%ld", dirRef);
 	pi_reset_errors(sd);
 
 	req = dlp_request_new (dlpFuncVFSDirEntryEnumerate, 1, 12);
-	if (req == NULL)
-		return pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
+	if (!req)  return pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
+	set_long(DLP_REQUEST_DATA(req, 0, 0), dirRef);
+	set_long(DLP_REQUEST_DATA(req, 0, 4), vfsIteratorStart);
+	
+	for (int buflen=256, dirIterator, last=0; ; buflen*=2, last=result)
+	{
+		set_long(DLP_REQUEST_DATA(req, 0, 8), buflen);
+		if ((result = dlp_exec (sd, req, &res)) // returns length of response buffer or error if negative
+				== PI_ERR_DLP_PALMOS && pi_palmos_error(sd) == expErrEnumerationEmpty)
+			result = 0;
 
-	set_long (DLP_REQUEST_DATA (req, 0, 0), dirRefNum);
-	set_long (DLP_REQUEST_DATA (req, 0, 4), *dirIterator);
-	set_long (DLP_REQUEST_DATA (req, 0, 8), 8 + *maxDirItems * (4 + vfsMAXFILENAME));
+		if (result > 0) {
+			dirIterator = get_long(DLP_RESPONSE_DATA(res, 0, 0));
+			result = get_long(DLP_RESPONSE_DATA(res, 0, 4));
 
-	result = dlp_exec (sd, req, &res);
-
-	dlp_request_free (req);
-
-	if (result > 0) {
-		*dirIterator = get_long (DLP_RESPONSE_DATA (res, 0, 0));
-		entries = get_long (DLP_RESPONSE_DATA (res, 0, 4));
-
-		LOG((PI_DBG_DLP, PI_DBG_LVL_INFO,
-				"%d results returnd (ilterator: %d)\n", entries, *dirIterator));
-
-		from  = 8;
-		count = 0;
-
-		for (at = 0; at < entries; at++) {
-			if (*maxDirItems > at) {
-				data[at].attr =
-					get_long(DLP_RESPONSE_DATA (res, 0, from));
-
-				/* fix for Sony sims (and probably devices too): they return
-				   the attributes in the high word of attr instead of the low
-				   word. We can safely shift it since the high 16 bits are not
-				   used for VFS flags */
-				if ((data[at].attr & 0x0000FFFF) == 0 &&
-					(data[at].attr & 0xFFFF0000) != 0)
-					data[at].attr >>= 16;
-
-				strncpy (data[at].name,
-						DLP_RESPONSE_DATA(res, 0, from + 4), vfsMAXFILENAME);
-				data[at].name[vfsMAXFILENAME-1] = 0;
-				count++;
+			LOG((PI_DBG_DLP, PI_DBG_LVL_INFO,
+					"%d entries returned (iterator: %d)\n", result, dirIterator));
+			// loop further if iteration not complete and too, if increase of entries:
+			if (dirIterator != vfsIteratorStop && result > last) {
+				dlp_response_free (res);
+				continue;
 			}
+			dlp_request_free (req);
 
-			/* Zero terminated string. Strings that have an
-			 even length will be null terminated and have a
-			 pad byte. */
-			slen = strlen (DLP_RESPONSE_DATA(res, 0, from + 4)) + 1;
-			if (slen & 1)
-				slen++;	/* make even stringlen + NULL */
+			if (dirItems && !(*dirItems = malloc(sizeof(**dirItems) * result)))
+				result = pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
 
-			/* 6 = 4 (attr) + 1 (NULL)  -+ 1 (PADDING) */
-			from += slen + 4;
+			for (int i=0, offset=8, slen; dirItems && i<result; i++, offset+=slen) {
+				(*dirItems)[i].attr = get_long(DLP_RESPONSE_DATA(res, 0, offset));
+				// Fix for Sony sims (and probably devices too): They return
+				// the attributes in the high word of attr instead of the low word.
+				// We can safely shift it since the high 16 bits are not used for VFS flags.
+				if (((*dirItems)[i].attr & 0x0000FFFF) == 0 && ((*dirItems)[i].attr & 0xFFFF0000) != 0)
+					(*dirItems)[i].attr >>= 16;
+
+				char *name = DLP_RESPONSE_DATA(res, 0, offset += 4);
+				if (!((*dirItems)[i].name = malloc(slen = strlen(name) + 1))) {
+					result = pi_set_error(sd, PI_ERR_GENERIC_MEMORY);
+					for (; --i>=0; )  free((*dirItems)[i].name);
+					break;
+				}
+				strcpy((*dirItems)[i].name, name);
+				// Strings with an odd length including the terminating zero
+				// are followed by a pad byte.
+				if (slen & 1)  slen++;
+			}
 		}
-		*maxDirItems = count;
-	} else {
-		*dirIterator = vfsIteratorStop;
-		entries = 0;
+		dlp_response_free (res);
+		return result;
 	}
-
-	dlp_response_free (res);
-
-	return result;
 }
 
 int

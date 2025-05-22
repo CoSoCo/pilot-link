@@ -25,7 +25,7 @@ dnl Pilot Link Version
 dnl ******************************
 PILOT_LINK_VERS=0
 PILOT_LINK_MAJOR=13
-PILOT_LINK_MINOR=3
+PILOT_LINK_MINOR=4
 PILOT_LINK_PATCH=
 
 AC_SUBST(PILOT_LINK_VERS)
@@ -36,30 +36,30 @@ VERSION="$PILOT_LINK_VERS.$PILOT_LINK_MAJOR.$PILOT_LINK_MINOR$PILOT_LINK_PATCH"
 
 dnl ******************************
 dnl Pilot Link Library Version
-dnl libpisock.so.CURRENT.AGE.REVISION
+dnl libpisock.so.CURRENT-AGE.AGE.REVISION
 dnl Please see the following URL for details:
 dnl http://sources.redhat.com/autobook/autobook/autobook_91.html
 dnl ******************************
 PISOCK_CURRENT=10
-PISOCK_AGE=2
 PISOCK_REVISION=0
+PISOCK_AGE=0
 
 AC_SUBST(PISOCK_CURRENT)
-AC_SUBST(PISOCK_AGE)
 AC_SUBST(PISOCK_REVISION)
+AC_SUBST(PISOCK_AGE)
 
 
 dnl ******************************
 dnl Pilot Link Sync Library Version
-dnl libpisync.so
+dnl libpisync.so.CURRENT-AGE.AGE.REVISION
 dnl ******************************
 PISYNC_CURRENT=1
-PISYNC_AGE=0
 PISYNC_REVISION=3
+PISYNC_AGE=0
 
 AC_SUBST(PISYNC_CURRENT)
-AC_SUBST(PISYNC_AGE)
 AC_SUBST(PISYNC_REVISION)
+AC_SUBST(PISYNC_AGE)
 
 dnl Eat -Werror so configure will run properly, if the user provided it
 enable_werror=no
@@ -832,8 +832,8 @@ AC_MSG_RESULT([
   Options detected/selected
   -------------------------.
   pilot-link version...... : $VERSION
-  libpisock version....... : $PISOCK_CURRENT.$PISOCK_AGE.$PISOCK_REVISION
-  libpisync version....... : $PISYNC_CURRENT.$PISYNC_AGE.$PISYNC_REVISION
+  libpisock version....... : $(($PISOCK_CURRENT-$PISOCK_AGE)).$PISOCK_AGE.$PISOCK_REVISION
+  libpisync version....... : $(($PISYNC_CURRENT-$PISYNC_AGE)).$PISYNC_AGE.$PISYNC_REVISION
   Build for host.......... : $host
   Extra Warnings.......... : $set_compile_warnings
   Direct USB support...... : $msg_usb
