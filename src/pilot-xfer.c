@@ -1676,23 +1676,27 @@ palm_list_internal(unsigned long int flags)
  *
  ***********************************************************************/
 static void
-print_fileinfo(PI_ERR err, FileRef fileRef, const char *path)
+print_fileinfo(PI_ERR err, FileRef fileRef, const char *path, unsigned long attributes)
 {
 	int		size;
 	time_t	epoch;
 
-	err = err < 0 ? err : dlp_VFSFileSize(sd, fileRef, &size);
-	err = err < 0 ? err : dlp_VFSFileGetDate(sd, fileRef, vfsFileDateModified, &epoch);
-	if (err < 0) {
+	if (err >= 0)
+		if (attributes & vfsFileAttrDirectory)
+			err = size = dlp_VFSDirEntryEnumerate(sd, fileRef, NULL);
+		else
+			err = dlp_VFSFileSize(sd, fileRef, &size);
+	err = (err >= 0) ? dlp_VFSFileGetDate(sd, fileRef, vfsFileDateModified, &epoch) : err;
+	if (err >= 0) {
+		char *date = ctime(&epoch);
+		date[24] = 0;
+		printf("   %8d %s  %s\n", size, date, path);
+	} else {
 		if (err != PI_ERR_DLP_PALMOS)
 			printf("   %s", pi_err_message(err));
 		else
 			printf("   %s", dlp_err_message(pi_palmos_error(sd)));
 		printf(":  %s\n", path);
-	} else {
-		char *date = ctime(&epoch);
-		date[24] = 0;
-		printf("   %8d %s  %s\n", size, date, path);
 	}
 }
 
@@ -1754,7 +1758,7 @@ print_dir(long volume, const char *dirPath, FileRef dirRef)
 		memset(filePath+pathlen, 0, vfsMAXFILENAME-pathlen);
 		strncpy(filePath+pathlen, infos[i].name, vfsMAXFILENAME-pathlen);
 		PI_ERR err = dlp_VFSFileOpen(sd, volume, filePath, dlpVFSOpenRead, &fileRef);
-		print_fileinfo(err, fileRef, infos[i].name);
+		print_fileinfo(err, fileRef, infos[i].name, infos[i].attr);
 		if (err >= 0) {
 			dlp_VFSFileClose(sd, fileRef);
 		}
@@ -2191,7 +2195,7 @@ palm_list_VFS()
 		if (err >= 0 && !(attributes & vfsFileAttrDirectory) && path[pathlen-1] == '/')
 			path[pathlen-1] = 0;
 		printf("   File on%s volume %ld:\n", defVol, volume);
-		print_fileinfo(err, fileRef, path);
+		print_fileinfo(err, fileRef, path, attributes);
 	}
 
 	(void) dlp_VFSFileClose(sd, fileRef);
